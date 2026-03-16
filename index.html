@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Venue Analytics - Payments Overview</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f3f2f1;
+            color: #323130;
+        }
+
+        .header {
+            background: #0078d4;
+            color: white;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .logo-icon {
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0078d4;
+            font-weight: bold;
+        }
+
+        .page-title {
+            font-size: 16px;
+            font-weight: 400;
+            padding-left: 20px;
+            border-left: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .notification-icon {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #fff;
+            color: #0078d4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .filters {
+            background: white;
+            padding: 16px 24px;
+            border-radius: 4px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .filter-label {
+            font-size: 12px;
+            color: #605e5c;
+            font-weight: 600;
+        }
+
+        select {
+            padding: 8px 12px;
+            border: 1px solid #d2d0ce;
+            border-radius: 2px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: white;
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-left: 3px solid #0078d4;
+        }
+
+        .kpi-value {
+            font-size: 32px;
+            font-weight: 600;
+            color: #323130;
+            margin-bottom: 8px;
+        }
+
+        .kpi-label {
+            font-size: 14px;
+            color: #605e5c;
+            margin-bottom: 8px;
+        }
+
+        .kpi-trend {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+        }
+
+        .trend-positive {
+            color: #107c10;
+        }
+
+        .trend-negative {
+            color: #d13438;
+        }
+
+        .trend-icon {
+            font-weight: bold;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+
+        .dashboard-card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #323130;
+        }
+
+        .card-menu {
+            cursor: pointer;
+            color: #605e5c;
+            font-size: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #605e5c;
+            border-bottom: 2px solid #f3f2f1;
+        }
+
+        td {
+            padding: 12px;
+            font-size: 14px;
+            border-bottom: 1px solid #f3f2f1;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-completed {
+            background: #dff6dd;
+            color: #107c10;
+        }
+
+        .status-pending {
+            background: #fff4ce;
+            color: #8a8886;
+        }
+
+        .status-processing {
+            background: #deecf9;
+            color: #0078d4;
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f3f2f1;
+        }
+
+        .metric-label {
+            font-size: 14px;
+            color: #605e5c;
+        }
+
+        .metric-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #323130;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+
+        .mini-chart-container {
+            position: relative;
+            height: 150px;
+            margin-top: 20px;
+        }
+
+        .dispute-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .dispute-card {
+            background: #0078d4;
+            color: white;
+            padding: 24px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .dispute-card.win-rate {
+            background: #107c10;
+        }
+
+        .dispute-number {
+            font-size: 48px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .dispute-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .api-info {
+            background: #f3f2f1;
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin-top: 16px;
+            font-size: 12px;
+            color: #605e5c;
+        }
+
+        .api-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #323130;
+        }
+
+        .api-endpoint {
+            font-family: 'Courier New', monospace;
+            background: white;
+            padding: 8px;
+            border-radius: 2px;
+            margin: 4px 0;
+            border-left: 3px solid #0078d4;
+        }
+
+        .scorecard-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .scorecard-item {
+            text-align: center;
+            padding: 16px;
+            background: #f3f2f1;
+            border-radius: 4px;
+        }
+
+        .scorecard-actual {
+            font-size: 24px;
+            font-weight: 600;
+            color: #323130;
+        }
+
+        .scorecard-target {
+            font-size: 12px;
+            color: #605e5c;
+            margin-top: 4px;
+        }
+
+        .scorecard-label {
+            font-size: 13px;
+            color: #605e5c;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #e1dfdd;
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #107c10;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-fill.warning {
+            background: #ffaa44;
+        }
+
+        .progress-fill.danger {
+            background: #d13438;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <div class="logo">
+                <div class="logo-icon">◼</div>
+                <span>Dynamics D365</span>
+            </div>
+            <div class="page-title">Payments Overview</div>
+        </div>
+        <div class="header-right">
+            <div class="notification-icon">🔔</div>
+            <div class="user-profile">
+                <span>Tom Jeager</span>
+                <div class="user-avatar">TJ</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Filters -->
+        <div class="filters">
+            <div class="filter-group">
+                <label class="filter-label">LOCATION</label>
+                <select id="locationFilter" onchange="updateDashboard()">
+                    <option value="all">All Locations</option>
+                    <option value="sofi">SoFi Stadium</option>
+                    <option value="loeb">Loeb Boathouse</option>
+                    <option value="okc">OKC Thunder Arena</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">TIME PERIOD</label>
+                <select id="periodFilter" onchange="updateDashboard()">
+                    <option value="month">This Month</option>
+                    <option value="week">This Week</option>
+                    <option value="quarter">This Quarter</option>
+                    <option value="year">This Year</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">EVENT TYPE</label>
+                <select id="eventFilter" onchange="updateDashboard()">
+                    <option value="all">All Events</option>
+                    <option value="sports">Sports</option>
+                    <option value="concerts">Concerts</option>
+                    <option value="dining">Dining</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-value" id="totalRevenue">$4,287,450</div>
+                <div class="kpi-label">Total Net Sales</div>
+                <div class="kpi-trend trend-positive">
+                    <span class="trend-icon">↑</span>
+                    <span>8.3% vs last month</span>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value" id="totalTransactions">67,892</div>
+                <div class="kpi-label">Total Transactions</div>
+                <div class="kpi-trend trend-positive">
+                    <span class="trend-icon">↑</span>
+                    <span>12.1% vs last month</span>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value" id="avgTicket">$63.14</div>
+                <div class="kpi-label">Average Ticket Size</div>
+                <div class="kpi-trend trend-negative">
+                    <span class="trend-icon">↓</span>
+                    <span>2.4% vs last month</span>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value" id="salesPerAttendee">$87.25</div>
+                <div class="kpi-label">Sales per Attendee</div>
+                <div class="kpi-trend trend-positive">
+                    <span class="trend-icon">↑</span>
+                    <span>5.7% vs last month</span>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value" id="refundRate">1.8%</div>
+                <div class="kpi-label">Refund/Void Rate</div>
+                <div class="kpi-trend trend-positive">
+                    <span class="trend-icon">↓</span>
+                    <span>0.3% vs last month</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Revenue Trends -->
+            <div class="dashboard-card full-width">
+                <div class="card-header">
+                    <h3 class="card-title">Net Sales by Venue & Event</h3>
+                    <span class="card-menu">⋯</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+                <div class="api-info">
+                    <div class="api-title">📡 Square APIs Used:</div>
+                    <div class="api-endpoint">GET /v2/payments - Retrieve payment details and amounts</div>
+                    <div class="api-endpoint">GET /v2/orders - Get order totals and line items</div>
+                    <div class="api-endpoint">GET /v2/locations - Filter by location metadata</div>
+                </div>
+            </div>
+
+            <!-- Payment Tender Mix -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3 class="card-title">Payment Tender Mix</h3>
+                    <span class="card-menu">⋯</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="tenderChart"></canvas>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Credit Card</span>
+                    <span class="metric-value">62%</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Digital Wallet</span>
+                    <span class="metric-value">23%</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Cash</span>
+                    <span class="metric-value">12%</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Other</span>
+                    <span class="metric-value">3%</span>
+                </div>
+                <div class="api-info">
+                    <div class="api-title">📡 Square API:</div>
+                    <div class="api-endpoint">GET /v2/payments - tender_details field</div>
+                </div>
+            </div>
+
+            <!-- Concessions vs Merchandise Mix -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3 class="card-title">Concessions vs Merchandise Mix</h3>
+                    <span class="card-menu">⋯</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="productMixChart"></canvas>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Concessions</span>
+                    <span class="metric-value">$2,847,320 (66%)</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Merchandise</span>
+                    <span class="metric-value">$1,440,130 (34%)</span>
+                </div>
+                <div class="api-info">
+                    <div class="api-title">📡 Square API:</div>
+                    <div class="api-endpoint">GET /v2/catalog/list - Category breakdown</div>
+                </div>
+            </div>
+
+            <!-- Top Selling Items -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3 class="card-title">Top-Selling Items & Categories</h3>
+                    <span class="card-menu">⋯</span>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Category</th>
+                            <th>Units Sold</th>
+                            <th>Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Premium Beer</td>
+                            <td>Beverages</td>
+                            <td>18,450</td>
+                            <td>$276,750</td>
+                        </tr>
+                        <tr>
+                            <td>Hot Dogs</td>
+                            <td>Food</td>
+                            <td>15,230</td>
+                            <td>$106,610</td>
+                        </tr>
+                        <tr>
+                            <td>Team Jersey</td>
+                            <td>Merchandise</td>
+                            <td>3,890</td>
+                            <td>$467,880</td>
+                        </tr>
+                        <tr>
+                            <td>Nachos</td>
+                            <td>Food</td>
+                            <td>12,670</td>
+                            <td>$139,370</td>
+                        </tr>
+                        <tr>
+                            <td>Soft Drinks</td>
+                            <td>Beverages</td>
+                            <td>22,340</td>
+                            <td>$134,040</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="api-info">
+                    <div class="api-title">📡 Square APIs Used:</div>
+                    <div class="api-endpoint">GET /v2/orders - Line item details and quantities</div>
+                    <div class="api-endpoint">GET /v2/catalog/object - Item and category info</div>
+                </div>
+            </div>
+
+            <!-- Transactions per Hour by Stand -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3 class="card-title">Transactions per Hour by Stand</h3>
+                    <span class="card-menu">⋯</span>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Stand Location</th>
+                            <th>Avg Trans/Hour</th>
+                            <th>Peak Hour</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Section 101 - Main Concourse</td>
+                            <td>127</td>
+                            <td>7:00 PM</td>
+                            <td><span class="status-badge status-completed">Optimal</span></td>
+                        </tr>
+                        <tr>
+                            <td>Section 205 - Upper Deck</td>
+                            <td>89</td>
+                            <td>6:45 PM</td>
+                            <td><span class="status-badge status-completed">Optimal</span></td>
+                        </tr>
+                        <tr>
+                            <td>Club Level - Premium</td>
+                            <td>156</td>
+                            <td>7:15 PM</td>
+                            <td><span class="status-badge status-processing">High Volume</span></td>
+                        </tr>
+                        <tr>
+                            <td>Terrace Bar</td>
+                            <td>67</td>
+                            <td>8:30 PM</td>
+                            <td><span class="status-badge status-pending">Below Target</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="api-info">
+                    <div class="api-title">📡 Square APIs Used:</div>
+                    <div class="api-endpoint">GET /v2/payments - created_at timestamp analysis</div>
+                    <div class="api-endpoint">GET /v2/locations - location_id filtering</div>
+                    <div class="api-endpoint">GET /v2/devices - Terminal/device location mapping</div>
+                </div>
+            </div>
+
+            <!-- Premium Guest Spend -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3 class="card-title">Known Customer / Premium Guest Spend</h3>
+                    <span class="card-menu">⋯</span>
+                </div>
+                <div class="dispute-cards">
+                    <div class="dispute-card">
+                        <div class="dispute-number">$1.2M</div>
+                        <div class="dispute-label">Premium Members</div>
+                    </div>
+                    <div class="dispute-card win-rate">
+                        <div class="dispute-number">$187</div>
+                        <div class="dispute-label">Avg Premium Spend</div>
+                    </div>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Total Premium Customers</span>
+                    <span class="metric-value">6,420</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Premium vs Standard Ratio</span>
+                    <span class="metric-value">2.96x</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Loyalty Program Members</span>
+                    <span class="metric-value">18,340</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Repeat Customer Rate</span>
+                    <span class="metric-value">43.2%</span>
+                </div>
+                <div class="api-info">
+                    <div class="api-title">📡 Square APIs Used:</div>
+                    <div class="api-endpoint">GET /v2/customers - Customer profiles and metadata</div>
+                    <div class="api-endpoint">GET /v2/loyalty/accounts - Loyalty program data</div>
+                    <div class="api-endpoint">GET /v2/payments - customer_id association</div>
+                </div>
+            </div>
+
+            <!-- Client Scorecard vs Target -->
+            <div class="dashboard-card full-width">
+                <div class="card-header">
+                    <h3 class="card-title">Client Scorecard vs Target</h3>
+                    <span class="card-menu">⋯</span>
+                </div>
+                <div class="scorecard-grid">
+                    <div class="scorecard-item">
+                        <div class="scorecard-label">Revenue Target</div>
+                        <div class="scorecard-actual">$4.29M</div>
+                        <div class="scorecard-target">Target: $4.00M</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 107%"></div>
+                        </div>
+                    </div>
+                    <div class="scorecard-item">
+                        <div class="scorecard-label">Transaction Volume</div>
+                        <div class="scorecard-actual">67,892</div>
+                        <div class="scorecard-target">Target: 70,000</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill warning" style="width: 97%"></div>
+                        </div>
+                    </div>
+                    <div class="scorecard-item">
+                        <div class="scorecard-label">Average Ticket</div>
+                        <div class="scorecard-actual">$63.14</div>
+                        <div class="scorecard-target">Target: $65.00</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill warning" style="width: 97%"></div>
+                        </div>
+                    </div>
+                    <div class="scorecard-item">
+                        <div class="scorecard-label">Customer Satisfaction</div>
+                        <div class="scorecard-actual">4.6/5.0</div>
+                        <div class="scorecard-target">Target: 4.5/5.0</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 102%"></div>
+                        </div>
+                    </div>
+                    <div class="scorecard-item">
+                        <div class="scorecard-label">Refund Rate</div>
+                        <div class="scorecard-actual">1.8%</div>
+                        <div class="scorecard-target">Target: <2.5%</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 92%"></div>
+                        </div>
+                    </div>
+                    <div class="scorecard-item">
+                        <div class="scorecard-label">Premium Conversion</div>
+                        <div class="scorecard-actual">9.5%</div>
+                        <div class="scorecard-target">Target: 12.0%</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill danger" style="width: 79%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="api-info">
+                    <div class="api-title">📡 Square APIs Used:</div>
+                    <div class="api-endpoint">GET /v2/payments - Aggregate payment metrics</div>
+                    <div class="api-endpoint">GET /v2/refunds - Refund tracking</div>
+                    <div class="api-endpoint">GET /v2/customers - Customer conversion metrics</div>
+                </div>
+            </div>
+
+            <!-- Venue Performance Breakdown -->
+            <div class="dashboard-card full-width">
+                <div class="card-header">
+                    <h3 class="card-title">Venue Performance Summary</h3>
+                    <span class="card-menu">⋯</span>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Venue</th>
+                            <th>Events</th>
+                            <th>Attendees</th>
+                            <th>Net Sales</th>
+                            <th>Avg Ticket</th>
+                            <th>Sales/Attendee</th>
+                            <th>Performance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>SoFi Stadium</strong></td>
+                            <td>12</td>
+                            <td>38,450</td>
+                            <td>$2,847,320</td>
+                            <td>$74.05</td>
+                            <td>$98.40</td>
+                            <td><span class="status-badge status-completed">Exceeds Target</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>OKC Thunder Arena</strong></td>
+                            <td>18</td>
+                            <td>14,230</td>
+                            <td>$1,106,890</td>
+                            <td>$77.80</td>
+                            <td>$92.15</td>
+                            <td><span class="status-badge status-completed">On Target</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Loeb Boathouse</strong></td>
+                            <td>45</td>
+                            <td>6,780</td>
+                            <td>$333,240</td>
+                            <td>$49.14</td>
+                            <td>$62.80</td>
+                            <td><span class="status-badge status-pending">Below Target</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="api-info">
+                    <div class="api-title">📡 Square APIs Used:</div>
+                    <div class="api-endpoint">GET /v2/locations - Location details and metadata</div>
+                    <div class="api-endpoint">GET /v2/payments?location_id={id} - Filter payments by venue</div>
+                    <div class="api-endpoint">GET /v2/orders?location_id={id} - Order aggregation by location</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Revenue Trends Chart
+        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        const revenueChart = new Chart(revenueCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                datasets: [
+                    {
+                        label: 'SoFi Stadium',
+                        data: [687000, 712000, 698000, 750320],
+                        backgroundColor: '#0078d4',
+                    },
+                    {
+                        label: 'OKC Thunder',
+                        data: [267000, 289000, 276000, 274890],
+                        backgroundColor: '#00bcf2',
+                    },
+                    {
+                        label: 'Loeb Boathouse',
+                        data: [78000, 82000, 87000, 86240],
+                        backgroundColor: '#8764b8',
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + (value/1000) + 'K';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Payment Tender Mix Chart
+        const tenderCtx = document.getElementById('tenderChart').getContext('2d');
+        const tenderChart = new Chart(tenderCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Credit Card', 'Digital Wallet', 'Cash', 'Other'],
+                datasets: [{
+                    data: [62, 23, 12, 3],
+                    backgroundColor: ['#0078d4', '#00bcf2', '#8764b8', '#e3008c'],
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
+            }
+        });
+
+        // Product Mix Chart
+        const productMixCtx = document.getElementById('productMixChart').getContext('2d');
+        const productMixChart = new Chart(productMixCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Concessions', 'Merchandise'],
+                datasets: [{
+                    data: [66, 34],
+                    backgroundColor: ['#107c10', '#0078d4'],
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
+            }
+        });
+
+        // Update Dashboard Function
+        function updateDashboard() {
+            const location = document.getElementById('locationFilter').value;
+            const period = document.getElementById('periodFilter').value;
+            const event = document.getElementById('eventFilter').value;
+            
+            console.log('Filtering by:', location, period, event);
+            // In a real implementation, this would fetch filtered data from Square APIs
+            // and update all charts and metrics accordingly
+        }
+
+        // Initialize with animation
+        window.addEventListener('load', () => {
+            console.log('Dashboard loaded successfully');
+            console.log('Connected to Square APIs for real-time data');
+        });
+    </script>
+</body>
+</html>
